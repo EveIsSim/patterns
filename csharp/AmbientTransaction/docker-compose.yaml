@@ -1,0 +1,12 @@
+version: "3"
+services:
+    db:
+        image: postgres
+        restart: always
+        container_name: eis_ambient_ts_db_test_local
+        environment:
+            - "POSTGRES_USER=postgres"
+            - "POSTGRES_PASSWORD=postgres"
+            - "POSTGRES_DB=eisambientts"
+        ports:
+            - 54873:5432
