@@ -21,31 +21,56 @@ public class BankingRepository : IBankingRepository
         return connection;
     }
 
-    public async Task<AccountEntity?> GetOwner(int accountId, CancellationToken token)
+    public async Task<(AccountEntity? Data, string? ErrMsg)> GetOwner(int accountId, CancellationToken token)
     {
         var sql = "SELECT * FROM accounts WHERE id = @Id";
 
-        using var connection = await CreateConnectionAsync();
-        var cmd = new CommandDefinition(sql, new { Id = accountId }, cancellationToken: token);
-        var result = await connection.QueryAsync<AccountEntity>(cmd);
-        return result.FirstOrDefault();
+        try
+        {
+            using var connection = await CreateConnectionAsync();
+            var cmd = new CommandDefinition(sql, new { Id = accountId }, cancellationToken: token);
+            var result = await connection.QueryAsync<AccountEntity>(cmd);
+            return (result.FirstOrDefault(), null);
+        }
+        catch (Exception ex)
+        {
+            return (null, ex.Message);
+        }
     }
 
     public async Task<(bool IsSucces, string ErrMsg)> UpdateBalance(AccountEntity[] entities, CancellationToken token)
     {
-        var tasks = entities.Select(x => UpdateBalance(x, token));
-        var result = await Task.WhenAll(tasks);
-        return (true, "");
+        try
+        {
+            foreach (var entity in entities)
+            {
+                var result = await UpdateBalance(entity, token);
+                if (!result.IsSucces)
+                    return result;
+            }
+            return (true, "");
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
     }
 
     private async Task<(bool IsSucces, string ErrMsg)> UpdateBalance(AccountEntity entity, CancellationToken token)
     {
         var sql = "UPDATE accounts SET owner_name = @OwnerName, balance = @Balance WHERE id = @Id";
 
-        using var connection = await CreateConnectionAsync();
-        var cmd = new CommandDefinition(sql, new { entity.OwnerName, entity.Balance, entity.Id }, cancellationToken: token);
-        await connection.ExecuteAsync(cmd);
-        return (true, "");
+        try
+        {
+            using var connection = await CreateConnectionAsync();
+            var cmd = new CommandDefinition(sql, new { entity.OwnerName, entity.Balance, entity.Id }, cancellationToken: token);
+            await connection.ExecuteAsync(cmd);
+            return (true, "");
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
     }
 
     public async Task<(bool IsSucces, string ErrMsg)> AddLog(TransactionLogEntity entity, CancellationToken token)
@@ -54,9 +79,16 @@ public class BankingRepository : IBankingRepository
                 INSERT INTO transaction_logs (source_account_id, destination_account_id, amount, timestamp)
                 VALUES (@SourceAccountId, @DestinationAccountId, @Amount, @Timestamp)";
 
-        using var connection = await CreateConnectionAsync();
-        var cmd = new CommandDefinition(sql, new { entity.SourceAccountId, entity.DestinationAccountId, entity.Amount, entity.Timestamp }, cancellationToken: token);
-        await connection.ExecuteAsync(cmd);
-        return (true, "");
+        try
+        {
+            using var connection = await CreateConnectionAsync();
+            var cmd = new CommandDefinition(sql, new { entity.SourceAccountId, entity.DestinationAccountId, entity.Amount, entity.Timestamp }, cancellationToken: token);
+            await connection.ExecuteAsync(cmd);
+            return (true, "");
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
     }
 }

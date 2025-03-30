@@ -27,22 +27,24 @@ public class BankingService : IBankingService
         if (r.SourceAccountId <= 0 || r.DestinationAccountId <= 0)
             return (false, "acount_id should be positive");
 
-        var source = await _db.GetOwner(r.SourceAccountId, token);
-        if (source is null) return (false, "sourceAccountId does not exist");
+        var sourceResult = await _db.GetOwner(r.SourceAccountId, token);
+        if (sourceResult.ErrMsg != null) return (false, sourceResult.ErrMsg);
+        if (sourceResult.Data is null) return (false, "sourceAccountId does not exist");
 
-        if (source.Balance < r.Amount)
+        if (sourceResult.Data!.Balance < r.Amount)
             return (false, "there are not enough funds on the balance to transfer the specified amount");
 
-        var destination = await _db.GetOwner(r.DestinationAccountId, token);
-        if (destination is null) return (false, "destinationAccountId does not exist");
+        var destinationResult = await _db.GetOwner(r.DestinationAccountId, token);
+        if (destinationResult.ErrMsg != null) return (false, destinationResult.ErrMsg);
+        if (destinationResult.Data is null) return (false, "destinationAccountId does not exist");
 
-        source.Balance -= r.Amount;
-        destination.Balance += r.Amount;
+        sourceResult.Data.Balance -= r.Amount;
+        destinationResult.Data.Balance += r.Amount;
 
 
         using var ts = _transactionScopeFactory.CreateTransactionScope();
 
-        await _db.UpdateBalance([source, destination], token);
+        await _db.UpdateBalance(new[] { sourceResult.Data, destinationResult.Data }, token);
 
         if (r.IsFailTransaction)
         {

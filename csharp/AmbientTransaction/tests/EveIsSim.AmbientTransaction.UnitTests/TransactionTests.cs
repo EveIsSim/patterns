@@ -1,7 +1,5 @@
-using System;
 using System.Transactions;
 using EveIsSim.AmbientTransaction.Core;
-using Xunit;
 
 namespace EveIsSim.AmbientTransaction.UnitTests;
 
