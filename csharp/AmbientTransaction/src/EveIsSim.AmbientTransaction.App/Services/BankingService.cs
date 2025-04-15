@@ -42,7 +42,9 @@ public class BankingService : IBankingService
         destinationResult.Data.Balance += r.Amount;
 
 
-        using var ts = _transactionScopeFactory.CreateTransactionScope();
+        //using var ts = _transactionScopeFactory.CreateTransactionScope();
+        // CreateTransactionScopeWithLogging only for demonstration.
+        using var ts = _transactionScopeFactory.CreateTransactionScopeWithLogging();
 
         await _db.UpdateBalance(new[] { sourceResult.Data, destinationResult.Data }, token);
 

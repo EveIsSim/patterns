@@ -5,6 +5,20 @@ namespace EveIsSim.AmbientTransaction.Core;
 
 public class TransactionScopeFactory : ITransactionScopeFactory
 {
+    // Only for demonstration
+    public TransactionScope CreateTransactionScopeWithLogging()
+    {
+        var transactionId = Guid.NewGuid();
+        Console.WriteLine($" => [TxFactory] Creating TransactionScope with ID: {transactionId}");
+        Console.WriteLine($" => [TxFactory] Thread: {Thread.CurrentThread.ManagedThreadId}");
+
+        var scope = CreateTransactionScope(IsolationLevel.ReadCommitted, timeout: TimeSpan.FromSeconds(30));
+
+        Console.WriteLine($" => [TxFactory] TransactionScope created. Transaction.Current ID: {Transaction.Current?.TransactionInformation.LocalIdentifier}");
+
+        return scope;
+    }
+
     public TransactionScope CreateTransactionScope()
     {
         return CreateTransactionScope(IsolationLevel.ReadCommitted, timeout: TimeSpan.FromSeconds(30));

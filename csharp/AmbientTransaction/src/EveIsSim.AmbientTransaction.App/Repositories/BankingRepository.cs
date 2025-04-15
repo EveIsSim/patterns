@@ -1,4 +1,5 @@
 using System.Data;
+using System.Transactions;
 using Dapper;
 using EveIsSim.AmbientTransaction.App.Repositories.Models;
 using Npgsql;
@@ -62,7 +63,16 @@ public class BankingRepository : IBankingRepository
 
         try
         {
+            // check Transaction
+            Console.WriteLine($" => => [DB] UpdateBalanca: UserId: {entity.Id}. Before OpenAsync. Thread: {Thread.CurrentThread.ManagedThreadId}");
+            Console.WriteLine($" => => [DB] UpdateBalanca: UserId: {entity.Id}. Transaction.Current: {Transaction.Current?.TransactionInformation.LocalIdentifier}");
+            //
             using var connection = await CreateConnectionAsync();
+
+            // check Transaction
+            Console.WriteLine($" => => [DB] UpdateBalanca: UserId: UserId: {entity.Id}. After OpenAsync. Still in Transaction: {Transaction.Current?.TransactionInformation.LocalIdentifier}");
+            //
+
             var cmd = new CommandDefinition(sql, new { entity.OwnerName, entity.Balance, entity.Id }, cancellationToken: token);
             await connection.ExecuteAsync(cmd);
             return (true, "");
@@ -81,7 +91,14 @@ public class BankingRepository : IBankingRepository
 
         try
         {
+            // check Transaction
+            Console.WriteLine($" => => [DB] AddLog: UserFrom: {entity.SourceAccountId} -> UserTo: {entity.DestinationAccountId}. Before OpenAsync. Thread: {Thread.CurrentThread.ManagedThreadId}");
+            Console.WriteLine($" => => [DB] AddLog: UserFrom: {entity.SourceAccountId} -> UserTo: {entity.DestinationAccountId}. Transaction.Current: {Transaction.Current?.TransactionInformation.LocalIdentifier}");
+            //
             using var connection = await CreateConnectionAsync();
+            // check Transaction
+            Console.WriteLine($" => => [DB] AddLog: UserFrom: {entity.SourceAccountId} -> UserTo: {entity.DestinationAccountId}. After OpenAsync. Still in Transaction: {Transaction.Current?.TransactionInformation.LocalIdentifier}");
+            //
             var cmd = new CommandDefinition(sql, new { entity.SourceAccountId, entity.DestinationAccountId, entity.Amount, entity.Timestamp }, cancellationToken: token);
             await connection.ExecuteAsync(cmd);
             return (true, "");
