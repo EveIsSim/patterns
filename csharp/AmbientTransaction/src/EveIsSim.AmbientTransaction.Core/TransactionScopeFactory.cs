@@ -8,8 +8,7 @@ public class TransactionScopeFactory : ITransactionScopeFactory
     // Only for demonstration
     public TransactionScope CreateTransactionScopeWithLogging()
     {
-        var transactionId = Guid.NewGuid();
-        Console.WriteLine($" => [TxFactory] Creating TransactionScope with ID: {transactionId}");
+        Console.WriteLine($" => [TxFactory] Creating TransactionScope");
         Console.WriteLine($" => [TxFactory] Thread: {Thread.CurrentThread.ManagedThreadId}");
 
         var scope = CreateTransactionScope(IsolationLevel.ReadCommitted, timeout: TimeSpan.FromSeconds(30));
